@@ -1,7 +1,7 @@
-#include <cmath>
-#include <fstream>
 #include <iostream>
-#include <iterator>
+#include <fstream>
+#include <cmath>
+#include <filesystem>
 
 #include "httplib.h"
 #include "nlohmann/json.hpp"
@@ -20,7 +20,11 @@ bool TianDiTuDownloader::loadConfig(const std::string &configPath)
         _threadNum = jsonSolver.at("threadNum"); // TODO: 这部分用起来
         _level = jsonSolver.at("level");
         _saveDir = jsonSolver.at("saveDir");
-        // TODO: 文件夹不存在就创建文件夹
+        std::filesystem::path path(_saveDir);
+        if (!std::filesystem::exists(path))
+        {
+            std::filesystem::create_directory(path);
+        }
         _keys.resize(jsonSolver.at("keys").size());
         for (int i = 0; i < jsonSolver.at("keys").size(); ++i)
         {
@@ -123,11 +127,19 @@ void TianDiTuDownloader::run()
     {
         TileIndex xy = {minXY.x + (i % (maxXY.x - minXY.x + 1)),
                         minXY.y + (i / (maxXY.x - minXY.x + 1))};
-        // TODO: 按照Z（文件夹）/Y（文件夹）/X.png的路径保存数据
-        TianDiTuDownloader::downloadTile(xy, _level, key,
-                                         _saveDir + "/" + std::to_string(_level) +
-                                             "_" + std::to_string(xy.x) + "_" +
-                                             std::to_string(xy.y) + ".png");
+        // 按照Z（文件夹）/Y（文件夹）/X.png的路径保存数据
+        std::string filePath = _saveDir + "/" + std::to_string(_level);
+        if (!std::filesystem::exists(std::filesystem::path(filePath)))
+        {
+            std::filesystem::create_directory(std::filesystem::path(filePath));
+        }
+        filePath = filePath + "/" + std::to_string(xy.y);
+        if (!std::filesystem::exists(std::filesystem::path(filePath)))
+        {
+            std::filesystem::create_directory(std::filesystem::path(filePath));
+        }
+        filePath = filePath + "/" + std::to_string(xy.x) + ".png";
+        TianDiTuDownloader::downloadTile(xy, _level, key, filePath);
 
         // 一个key一天只能下1w个瓦片
         if ((++nOfOneKey) == 10000)
