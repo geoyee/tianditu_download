@@ -1,9 +1,12 @@
 #pragma once
-#ifndef UTILITY_H
-#define UTILITY_H
+
+#ifndef TIANDITU_DOWNLOAD_H
+#define TIANDITU_DOWNLOAD_H
 
 #include <iostream>
+#include <string>
 #include <vector>
+#include "easylogging++.h"
 
 struct Lnglat
 {
@@ -40,16 +43,19 @@ public:
 
     bool loadConfig(const std::string &configPath);
     static TileIndex lnglatToTileIndex(Lnglat lnglat, int level);
-    static bool downloadTile(TileIndex xy, int level, const std::string &key, const std::string &path);
+    static bool downloadTile(TileIndex xy, int level, const std::string &key,
+                             const std::string &path);
     void run();
 
 private:
     int _startIndex = 0;
     int _threadNum = 1;
     int _level = 1;
+    int _numOfTk = 10000;
+    std::string _configPath = "./config.json";
     std::string _saveDir = "./";
     std::vector<std::string> _keys = {};
     Extent _extent = {0, 0, 0, 0};
 };
 
-#endif // UTILITY_H
+#endif // TIANDITU_DOWNLOAD_H

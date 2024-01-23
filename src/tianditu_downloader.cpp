@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <filesystem>
-
+#include <cmath>
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 #include "tianditu_downloader.h"
@@ -11,14 +10,18 @@
 
 bool TianDiTuDownloader::loadConfig(const std::string &configPath)
 {
+    _configPath = configPath;
     nlohmann::json jsonSolver;
     std::ifstream jsonFile(configPath.c_str());
     jsonFile >> jsonSolver;
+    jsonFile.close();
+    LOG(INFO) << "======= Config Loading =======";
     try
     {
         _startIndex = jsonSolver.at("startIndex");
         _threadNum = jsonSolver.at("threadNum"); // TODO: 这部分用起来
         _level = jsonSolver.at("level");
+        _numOfTk = jsonSolver.at("numOfTk");
         _saveDir = jsonSolver.at("saveDir");
         std::filesystem::path path(_saveDir);
         if (!std::filesystem::exists(path))
@@ -33,24 +36,24 @@ bool TianDiTuDownloader::loadConfig(const std::string &configPath)
         _extent = {jsonSolver.at("extent")[0], jsonSolver.at("extent")[1],
                    jsonSolver.at("extent")[2], jsonSolver.at("extent")[3]};
 
-        // TODO: 打印在log中
-        // std::cout << "==== load config success ====" << std::endl;
-        // std::cout << "Start Index: \t" << _startIndex << std::endl;
-        // std::cout << "Thread Num: \t" << _threadNum << std::endl;
-        // std::cout << "Level: \t\t" << _level << std::endl;
-        // std::cout << "SaveDir: \t" << _saveDir << std::endl;
-        // std::cout << "keys: \n";
-        // for (int i = 0; i < _keys.size(); ++i) {
-        //   std::cout << "\t\t" << _keys.at(i) << std::endl;
-        // }
-        // std::cout << "Extent: \t" << _extent.minLng << " " << _extent.maxLng << "
-        // "
-        //           << _extent.minLat << " " << _extent.maxLat << std::endl;
-
+        LOG(INFO) << "Start Index:\t" << _startIndex;
+        LOG(INFO) << "Thread Num: \t" << _threadNum;
+        LOG(INFO) << "Level:      \t" << _level;
+        LOG(INFO) << "One Of TK:  \t" << _numOfTk;
+        LOG(INFO) << "SaveDir:    \t" << _saveDir;
+        LOG(INFO) << "keys:       \t" << _keys.size();
+        for (int i = 0; i < _keys.size(); ++i)
+        {
+            LOG(INFO) << "            \t" << _keys.at(i);
+        }
+        LOG(INFO) << "Extent: \t\t" << _extent.minLng << " " << _extent.maxLng
+                  << " " << _extent.minLat << " " << _extent.maxLat;
+        LOG(INFO) << "======== Load Success ========";
         return true;
     }
     catch (...)
     {
+        LOG(INFO) << "======== Load Failed =========";
         return false;
     }
 }
@@ -58,10 +61,7 @@ bool TianDiTuDownloader::loadConfig(const std::string &configPath)
 TileIndex TianDiTuDownloader::lnglatToTileIndex(Lnglat lnglat, int level)
 {
     double x = (lnglat.lng + 180) / 360;
-    double y = (1 - std::log(std::tan(lnglat.lat * M_PI / 180) +
-                             1 / std::cos(lnglat.lat * M_PI / 180)) /
-                        M_PI) /
-               2;
+    double y = (1 - std::log(std::tan(lnglat.lat * M_PI / 180) + 1 / std::cos(lnglat.lat * M_PI / 180)) / M_PI) / 2;
     double titleX = std::floor(x * pow(2, level));
     double titleY = std::floor(y * pow(2, level));
     return TileIndex{static_cast<int>(titleX), static_cast<int>(titleY)};
@@ -101,11 +101,14 @@ bool TianDiTuDownloader::downloadTile(TileIndex xy, int level,
         std::ofstream out(path, std::ios::binary);
         out << res->body;
         out.close();
+        LOG(INFO) << "[SUCCESS] tile " << level << "_" << xy.y << "_" << xy.x
+                  << " saved";
         return true;
     }
     else
     {
-        // TODO: 打印在log中
+        LOG(ERROR) << "[FAILED] tile " << level << "_" << xy.y << "_" << xy.x
+                   << " can not download, due to: " << res->body;
         return false;
     }
 }
@@ -121,40 +124,61 @@ void TianDiTuDownloader::run()
     int keyIndex = 0;
     std::string key = _keys[keyIndex];
     int tileNum = (maxXY.x - minXY.x + 1) * (maxXY.y - minXY.y + 1);
-    // TODO: 打印在log中
-    // std::cout << "All tiles: \t" << tileNum << std::endl;
+    LOG(INFO) << "All tiles:  \t" << tileNum;
+
+    std::string levelPath = _saveDir + "/" + std::to_string(_level);
+    if (!std::filesystem::exists(std::filesystem::path(levelPath)))
+    {
+        std::filesystem::create_directory(std::filesystem::path(levelPath));
+    }
+
     for (int i = _startIndex; i < tileNum; ++i)
     {
         TileIndex xy = {minXY.x + (i % (maxXY.x - minXY.x + 1)),
                         minXY.y + (i / (maxXY.x - minXY.x + 1))};
-        // 按照Z（文件夹）/Y（文件夹）/X.png的路径保存数据
-        std::string filePath = _saveDir + "/" + std::to_string(_level);
+
+        // 按照Z（文件夹）/Y（文件夹）/X（文件夹）/tile.png的路径保存数据
+        std::string filePath = levelPath + "/" + std::to_string(xy.y);
         if (!std::filesystem::exists(std::filesystem::path(filePath)))
         {
             std::filesystem::create_directory(std::filesystem::path(filePath));
         }
-        filePath = filePath + "/" + std::to_string(xy.y);
-        if (!std::filesystem::exists(std::filesystem::path(filePath)))
-        {
-            std::filesystem::create_directory(std::filesystem::path(filePath));
-        }
-        filePath = filePath + "/" + std::to_string(xy.x) + ".png";
+        filePath = filePath + "/" + std::to_string(xy.x);
+        std::filesystem::create_directory(std::filesystem::path(filePath));
+        filePath = filePath + "/" + "tile.png";
         TianDiTuDownloader::downloadTile(xy, _level, key, filePath);
 
-        // 一个key一天只能下1w个瓦片
-        if ((++nOfOneKey) == 10000)
+        if (i == tileNum - 1)
         {
-            nOfOneKey = 0;
-            key = _keys[++keyIndex];
-            if (keyIndex == _keys.size())
+            LOG(INFO) << "======= All Tiles Saved ======";
+        }
+        else
+        {
+            if ((++nOfOneKey) == _numOfTk)
             {
-                std::cout << "All keys used!" << std::endl;
-                _startIndex = i + 1;
-                break;
+                if (++keyIndex == _keys.size())
+                {
+                    LOG(INFO) << "======== All Keys Used =======";
+                    _startIndex = ++i;
+                    LOG(INFO) << "Next index: \t" << _startIndex;
+                    break;
+                }
+                // 切换下一个key
+                key = _keys[keyIndex];
+                nOfOneKey = 0;
             }
         }
     }
 
-    // TODO: 修改配置文件的起始索引
-    std::cout << "Next start index: " << _startIndex << std::endl;
+    // 修改配置文件中的startIndex
+    nlohmann::json jsonSolver;
+    std::ifstream jsonFile(_configPath.c_str());
+    jsonFile >> jsonSolver;
+    jsonFile.close();
+    jsonSolver["startIndex"] = _startIndex;
+    std::ofstream jsonFileOut(_configPath.c_str());
+    jsonFileOut << jsonSolver;
+    jsonFileOut.close();
+
+    LOG(INFO) << "========== Finished ==========";
 }

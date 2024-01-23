@@ -2,6 +2,7 @@
     "startIndex": 0,
     "threadNum": 1,
     "level": 15,
+    "numOfTk": 10000,
     "saveDir": "./datas",
     "keys": [
         "zxc123asd456qwe789",

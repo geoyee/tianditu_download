@@ -1,5 +1,7 @@
 #include "tianditu_downloader.h"
 
+INITIALIZE_EASYLOGGINGPP
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
