@@ -5,6 +5,8 @@
 ![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-cpp--httplib-green?label=HTTP&link=https%3A%2F%2Fgithub.com%2Fyhirose%2Fcpp-httplib)
 ![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-easyloggingpp-green?label=LOG&link=https%3A%2F%2Fgithub.com%2Fabumq%2Feasyloggingpp)
 
+[![CMake on multiple platforms](https://github.com/geoyee/tianditu_download/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/geoyee/tianditu_download/actions/workflows/cmake-multi-platform.yml)
+
 天地图瓦片下载
 
 ## 配置
