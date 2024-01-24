@@ -1,17 +1,17 @@
 {
     "startIndex": 0,
-    "threadNum": 1,
-    "level": 15,
+    "level": 14,
     "numOfTk": 10000,
     "saveDir": "./datas",
     "keys": [
-        "zxc123asd456qwe789",
-        "vbn147fgh258rty369"
+        "8exxxxxxxxxxxxxxxxxxxxxxxxxxxxcc",
+        "92xxxxxxxxxxxxxxxxxxxxxxxxxxxx4e"
     ],
+    "tileMode": "ZYX",
     "extent": [
-        116.55,
-        116.66,
-        39.94,
-        39.91
+        103.937226,
+        104.149369,
+        30.757615,
+        30.583421
     ]
 }
