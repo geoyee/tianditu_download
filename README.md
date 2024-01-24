@@ -1,6 +1,9 @@
 # tianditu_download
 
 ![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-C%2B%2B17-blue?style=flat&label=Standard%20C%2B%2B&link=https%3A%2F%2Fen.cppreference.com%2Fw%2Fcpp%2F17)
+![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-json-green?label=JSON&link=https%3A%2F%2Fgithub.com%2Fnlohmann%2Fjson)
+![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-cpp--httplib-green?label=HTTP&link=https%3A%2F%2Fgithub.com%2Fyhirose%2Fcpp-httplib)
+![Static Badge](https://img.shields.io/badge/https%3A%2F%2Fimg.shields.io%2Fbadge%2Fany_text-easyloggingpp-green?label=LOG&link=https%3A%2F%2Fgithub.com%2Fabumq%2Feasyloggingpp)
 
 天地图瓦片下载
 
@@ -44,9 +47,3 @@ TiandituDowunloader.exe config.json
 ## 参考
 
 - [tianditu-python](https://github.com/huifer/tianditu-python/tree/master)
-
-## 依赖
-
-- [json](https://github.com/nlohmann/json)
-- [cpp-httplib](https://github.com/yhirose/cpp-httplib)
-- [easyloggingpp](https://github.com/abumq/easyloggingpp)
