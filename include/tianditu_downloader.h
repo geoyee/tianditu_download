@@ -9,8 +9,6 @@
 #include <queue>
 #include "easylogging++.h"
 
-#define FAILD_PATH "./failedList.txt"
-
 struct Lnglat
 {
     double lng;
